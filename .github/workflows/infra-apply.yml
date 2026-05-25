@@ -1,0 +1,94 @@
+name: infra-apply
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra/okta/**'
+      - 'infra/aws-base/**'
+      - 'infra/aws-app/janitor/**'
+      - 'infra/aws-app/jit-frontend/**'
+      - 'infra/modules/**'
+      - 'infra/policies/**'
+      - '.github/workflows/infra-apply.yml'
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: 'Stack to apply'
+        required: true
+        type: choice
+        options:
+          - okta
+          - aws-base
+          - aws-app/janitor
+          - aws-app/jit-frontend
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      stacks: ${{ steps.list.outputs.stacks }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: changed
+        if: github.event_name == 'push'
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            infra/okta/**
+            infra/aws-base/**
+            infra/aws-app/janitor/**
+            infra/aws-app/jit-frontend/**
+            infra/policies/**
+            infra/modules/**
+      - id: list
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            stacks=("${{ inputs.stack }}")
+          else
+            files="${{ steps.changed.outputs.all_changed_files }}"
+            stacks=()
+            echo "$files" | grep -q '^infra/okta/'                 && stacks+=(okta)                || true
+            echo "$files" | grep -q '^infra/aws-base/'             && stacks+=(aws-base)            || true
+            echo "$files" | grep -q '^infra/aws-app/janitor/'      && stacks+=(aws-app/janitor)     || true
+            echo "$files" | grep -q '^infra/aws-app/jit-frontend/' && stacks+=(aws-app/jit-frontend) || true
+            if echo "$files" | grep -qE '^infra/(modules|policies)/'; then
+              stacks=(okta aws-base aws-app/janitor aws-app/jit-frontend)
+            fi
+          fi
+          echo "stacks=$(printf '%s\n' "${stacks[@]}" | jq -R . | jq -cs .)" >> "$GITHUB_OUTPUT"
+
+  apply:
+    needs: detect
+    if: needs.detect.outputs.stacks != '[]' && needs.detect.outputs.stacks != ''
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        stack: ${{ fromJson(needs.detect.outputs.stacks) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOYER_ROLE_ARN }}
+          aws-region: us-east-1
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.6.6'
+      - name: apply
+        working-directory: infra/${{ matrix.stack }}
+        run: |
+          set -euo pipefail
+          terraform init -backend-config="bucket=${{ vars.STATE_BUCKET_NAME }}"
+          extra=""
+          if [ "${{ matrix.stack }}" = "aws-app/janitor" ]; then
+            extra='-var github_repo=${{ github.repository }}'
+          fi
+          terraform apply -auto-approve $extra
