@@ -22,7 +22,7 @@ def _policy(bucket):
 
 def test_grant_adds_sid(s3_bucket):
     S3Target(s3_bucket).grant("arn:aws:sts::123:assumed-role/X/u", ["s3:GetObject"], "g1")
-    assert "jit-g1" in [s["Sid"] for s in _policy(s3_bucket)["Statement"]]
+    assert "jitg1" in [s["Sid"] for s in _policy(s3_bucket)["Statement"]]
 
 
 def test_revoke_only_that_sid(s3_bucket):
@@ -31,7 +31,7 @@ def test_revoke_only_that_sid(s3_bucket):
     t.grant("arn:aws:sts::123:assumed-role/X/b", ["s3:GetObject"], "g2")
     t.revoke_by_grant_id("g1")
     sids = [s["Sid"] for s in _policy(s3_bucket)["Statement"]]
-    assert "jit-g2" in sids and "jit-g1" not in sids
+    assert "jitg2" in sids and "jitg1" not in sids
 
 
 def test_connection_instructions_scalable(s3_bucket):
