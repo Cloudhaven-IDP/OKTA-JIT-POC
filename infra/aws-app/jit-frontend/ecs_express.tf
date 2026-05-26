@@ -26,5 +26,6 @@ module "streamlit_service" {
     environment    = local.container_env
   }
 
-  task_iam_role_arn = module.ecs_task_role.role_arn
+  create_task_iam_role = false
+  task_iam_role_arn    = module.ecs_task_role.role_arn
 }
