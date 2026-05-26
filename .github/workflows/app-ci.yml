@@ -55,7 +55,7 @@ jobs:
             echo "janitor=${{ steps.gather-diff.outputs.janitor_any_changed }}"     >> "$GITHUB_OUTPUT"
           fi
 
-  build-streamlit:
+  frontend-cicd:
     needs: detect
     if: needs.detect.outputs.streamlit == 'true'
     runs-on: ubuntu-latest
@@ -70,11 +70,11 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - id: tag
         run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-      - name: build & push streamlit image (arm64)
+      - name: build & push streamlit image (amd64)
         run: |
           ECR_URL=$(aws ecr describe-repositories --repository-names jit-streamlit --query 'repositories[0].repositoryUri' --output text)
           IMG="$ECR_URL:${{ steps.tag.outputs.tag }}"
-          docker buildx build --platform linux/arm64 --provenance=false --sbom=false -f app/streamlit/Dockerfile --push -t "$IMG" .
+          docker buildx build --platform linux/amd64 --provenance=false --sbom=false -f app/streamlit/Dockerfile --push -t "$IMG" .
           echo "STREAMLIT_IMAGE=$IMG" >> "$GITHUB_ENV"
       - name: bump SSM image_tag
         run: |
@@ -82,12 +82,12 @@ jobs:
             --name /jit/jit-frontend/image_tag \
             --value "${{ steps.tag.outputs.tag }}" \
             --type String --overwrite
-      - name: Bump Image version
+      - name: trigger infra-apply (aws-app/jit-frontend)
         run: gh workflow run infra-apply.yml -f stack=aws-app/jit-frontend
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-janitor:
+  janitor-cicd:
     needs: detect
     if: needs.detect.outputs.janitor == 'true'
     runs-on: ubuntu-latest
@@ -102,13 +102,17 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - id: tag
         run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-      - name: build & push janitor image (arm64) + update function
+      - name: build & push janitor image (arm64)
         run: |
           ECR_URL=$(aws ecr describe-repositories --repository-names jit-janitor --query 'repositories[0].repositoryUri' --output text)
           IMG="$ECR_URL:${{ steps.tag.outputs.tag }}"
           docker buildx build --platform linux/arm64 --provenance=false --sbom=false -f app/lambdas/janitor/Dockerfile --push -t "$IMG" .
-          # Lambda module has lifecycle.ignore_changes = [image_uri]; update directly.
-          aws lambda update-function-code --function-name jit-janitor --image-uri "$IMG"
+          echo "JANITOR_IMAGE=$IMG" >> "$GITHUB_ENV"
+      - name: update Lambda function code
+        # Lambda module has lifecycle.ignore_changes = [image_uri]; update directly.
+        run: aws lambda update-function-code --function-name jit-janitor --image-uri "$JANITOR_IMAGE"
+      - name: bump SSM image_tag
+        run: |
           aws ssm put-parameter \
             --name /jit/janitor/image_tag \
             --value "${{ steps.tag.outputs.tag }}" \

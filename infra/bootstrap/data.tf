@@ -43,3 +43,52 @@ data "aws_iam_policy_document" "aws_deployer_trust" {
     }
   }
 }
+
+# PowerUser excludes IAM.
+data "aws_iam_policy_document" "aws_deployer_iam" {
+  statement {
+    sid    = "ManagePolicies"
+    effect = "Allow"
+    actions = [
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion",
+      "iam:ListPolicyVersions",
+      "iam:ListPolicies",
+      "iam:ListEntitiesForPolicy",
+      "iam:CreatePolicy",
+      "iam:DeletePolicy",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicyVersion",
+      "iam:SetDefaultPolicyVersion",
+      "iam:TagPolicy",
+      "iam:UntagPolicy",
+      "iam:ListOpenIDConnectProviders",
+      "iam:GetOpenIDConnectProvider",
+    ]
+    resources = ["*"]
+  }
+  statement {
+    sid    = "ManageRoles"
+    effect = "Allow"
+    actions = [
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:ListRoles",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListInstanceProfilesForRole",
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:UpdateRole",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:PutRolePolicy",
+      "iam:DeleteRolePolicy",
+      "iam:PassRole",
+      "iam:TagRole",
+      "iam:UntagRole",
+    ]
+    resources = ["*"]
+  }
+}

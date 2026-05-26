@@ -45,6 +45,9 @@ module "aws_deployer_role" {
   description        = "TF apply + image push + SSM updates (assumed via GitHub OIDC from main branch only)."
   assume_role_policy = data.aws_iam_policy_document.aws_deployer_trust.json
   policy_arns        = ["arn:aws:iam::aws:policy/PowerUserAccess"]
+  inline_policies = {
+    iam-lifecycle = data.aws_iam_policy_document.aws_deployer_iam.json
+  }
 }
 
 module "okta_api_token_secret" {
