@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
     paths: ['app/**', '.github/workflows/app-ci.yml']
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -23,16 +24,18 @@ jobs:
       - run: uv run pytest app/tests -v
 
   detect:
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     needs: test
     runs-on: ubuntu-latest
     outputs:
-      streamlit: ${{ steps.gather-diff.outputs.streamlit_any_changed }}
-      janitor:   ${{ steps.gather-diff.outputs.janitor_any_changed }}
+      streamlit: ${{ steps.classify.outputs.streamlit }}
+      janitor:   ${{ steps.classify.outputs.janitor }}
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 2 }
+        with:
+          fetch-depth: 2
       - id: gather-diff
+        if: github.event_name == 'push'
         uses: tj-actions/changed-files@v44
         with:
           files_yaml: |
@@ -42,6 +45,15 @@ jobs:
             janitor:
               - app/lambdas/janitor/**
               - app/shared/**
+      - id: classify
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "streamlit=true" >> "$GITHUB_OUTPUT"
+            echo "janitor=true"   >> "$GITHUB_OUTPUT"
+          else
+            echo "streamlit=${{ steps.gather-diff.outputs.streamlit_any_changed }}" >> "$GITHUB_OUTPUT"
+            echo "janitor=${{ steps.gather-diff.outputs.janitor_any_changed }}"     >> "$GITHUB_OUTPUT"
+          fi
 
   build-streamlit:
     needs: detect
@@ -62,7 +74,7 @@ jobs:
         run: |
           ECR_URL=$(aws ecr describe-repositories --repository-names jit-streamlit --query 'repositories[0].repositoryUri' --output text)
           IMG="$ECR_URL:${{ steps.tag.outputs.tag }}"
-          docker buildx build --platform linux/arm64 -f app/streamlit/Dockerfile --push -t "$IMG" .
+          docker buildx build --platform linux/arm64 --provenance=false --sbom=false -f app/streamlit/Dockerfile --push -t "$IMG" .
           echo "STREAMLIT_IMAGE=$IMG" >> "$GITHUB_ENV"
       - uses: aquasecurity/trivy-action@master
         with:
@@ -99,7 +111,7 @@ jobs:
         run: |
           ECR_URL=$(aws ecr describe-repositories --repository-names jit-janitor --query 'repositories[0].repositoryUri' --output text)
           IMG="$ECR_URL:${{ steps.tag.outputs.tag }}"
-          docker buildx build --platform linux/arm64 -f app/lambdas/janitor/Dockerfile --push -t "$IMG" .
+          docker buildx build --platform linux/arm64 --provenance=false --sbom=false -f app/lambdas/janitor/Dockerfile --push -t "$IMG" .
           # Lambda module has lifecycle.ignore_changes = [image_uri]; update directly.
           aws lambda update-function-code --function-name jit-janitor --image-uri "$IMG"
           aws ssm put-parameter \
