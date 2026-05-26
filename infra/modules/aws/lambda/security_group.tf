@@ -3,7 +3,7 @@ resource "aws_security_group" "this" {
 
   name        = var.function_name
   description = "${var.function_name}-lambda-security-group"
-  vpc_id      = data.aws_vpc.this.id
+  vpc_id      = data.aws_vpcs.this[0].ids[0]
 }
 
 resource "aws_security_group_rule" "egress" {

@@ -3,17 +3,6 @@ variable "group_names" {
   description = "List of IAM Identity Center group names"
 }
 
-variable "group_memberships" {
-  type        = map(list(string))
-  description = <<EOT
-  A map of group names to lists of user names to assign.
-  Example: {
-    "Cloudhaven-Admins" = ["bazit"]
-  }
-  EOT
-  default     = {}
-}
-
 variable "permission_set_name" {
   type        = string
   description = "Name of the permission set"

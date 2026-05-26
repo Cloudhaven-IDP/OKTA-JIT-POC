@@ -3,7 +3,7 @@ locals {
 }
 
 data "aws_iam_policy_document" "assume_role" {
-  count = var.assume_role_policy == null ? 1 : 0
+  count = var.principals != null ? 1 : 0
 
   statement {
     effect  = "Allow"

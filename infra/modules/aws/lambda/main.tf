@@ -39,7 +39,7 @@ resource "aws_lambda_function" "this" {
 
   logging_config {
     log_group  = aws_cloudwatch_log_group.this.name
-    log_format = "json"
+    log_format = "JSON"
   }
 
   dynamic "vpc_config" {
