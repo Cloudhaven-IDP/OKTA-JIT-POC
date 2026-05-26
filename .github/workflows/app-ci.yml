@@ -66,15 +66,14 @@ jobs:
           role-to-assume: ${{ vars.AWS_DEPLOYER_ROLE_ARN }}
           aws-region: us-east-1
       - uses: aws-actions/amazon-ecr-login@v2
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
       - id: tag
         run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - name: build & push streamlit image (amd64)
         run: |
           ECR_URL=$(aws ecr describe-repositories --repository-names jit-streamlit --query 'repositories[0].repositoryUri' --output text)
           IMG="$ECR_URL:${{ steps.tag.outputs.tag }}"
-          docker buildx build --platform linux/amd64 --provenance=false --sbom=false -f app/streamlit/Dockerfile --push -t "$IMG" .
+          docker build -f app/streamlit/Dockerfile -t "$IMG" .
+          docker push "$IMG"
           echo "STREAMLIT_IMAGE=$IMG" >> "$GITHUB_ENV"
       - name: bump SSM image_tag
         run: |

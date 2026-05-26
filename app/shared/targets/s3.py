@@ -34,12 +34,15 @@ class S3Target:
     def grant(self, principal_pattern: str, actions: list[str], grant_id: str) -> None:
         p = self._read()
         p["Statement"] = [s for s in p["Statement"] if s.get("Sid") != _sid(grant_id)]
+        # Wildcards aren't allowed inside the assumed-role ARN principal; match via condition.
+        account_id = principal_pattern.split(":")[4]
         p["Statement"].append({
             "Sid": _sid(grant_id),
             "Effect": "Allow",
-            "Principal": {"AWS": principal_pattern},
+            "Principal": {"AWS": account_id},
             "Action": actions,
             "Resource": [self.target_arn, f"{self.target_arn}/*"],
+            "Condition": {"ArnLike": {"aws:PrincipalArn": principal_pattern}},
         })
         self._write(p)
 

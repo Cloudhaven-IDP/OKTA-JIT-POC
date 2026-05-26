@@ -25,3 +25,4 @@ venv/
 .env
 .env.local
 bootstrap-outputs.json
+okta.txt
