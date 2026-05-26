@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM --platform=linux/arm64 ghcr.io/astral-sh/uv:0.11.16-python3.12-bookworm-slim AS builder
+FROM --platform=linux/arm64 ghcr.io/astral-sh/uv:0.11.16-python3.12-trixie AS builder
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY pyproject.toml uv.lock ./
