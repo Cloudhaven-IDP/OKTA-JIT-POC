@@ -66,7 +66,7 @@ data "aws_iam_policy_document" "ecs_task_inline" {
     resources = ["*"]
     condition {
       test     = "StringEquals"
-      variable = "aws:ResourceTag/JIT"
+      variable = "s3:ResourceTag/JIT"
       values   = ["true"]
     }
   }
