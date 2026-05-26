@@ -5,6 +5,10 @@ data "aws_dynamodb_table" "grants" {
   name = "jit-grants"
 }
 
+data "aws_ecr_repository" "janitor" {
+  name = "jit-janitor"
+}
+
 data "aws_iam_policy_document" "janitor_revoke" {
   statement {
     effect = "Allow"

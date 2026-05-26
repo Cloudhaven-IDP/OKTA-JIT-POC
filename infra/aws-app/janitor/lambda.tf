@@ -6,8 +6,7 @@ module "janitor_lambda" {
   env           = "jit-poc"
   github_repo   = var.github_repo
 
-  # Placeholder; app-ci updates via aws lambda update-function-code.
-  image_uri = "public.ecr.aws/lambda/python:3.12"
+  image_uri = "${data.aws_ecr_repository.janitor.repository_url}:bootstrap"
 
   architectures = ["arm64"]
   timeout       = 30

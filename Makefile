@@ -4,10 +4,10 @@ prereqs:
 	./scripts/check-prereqs.sh
 
 setup:
-	./setup.sh
+	./scripts/setup.sh
 
 cleanup:
-	./cleanup.sh
+	./scripts/cleanup.sh
 
 test:
 	uv sync --frozen --group dev

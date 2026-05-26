@@ -5,6 +5,10 @@ data "aws_dynamodb_table" "grants" {
   name = "jit-grants"
 }
 
+data "aws_ecr_repository" "streamlit" {
+  name = "jit-streamlit"
+}
+
 data "aws_lambda_function" "janitor" {
   function_name = "jit-janitor"
 }

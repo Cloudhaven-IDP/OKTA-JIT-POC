@@ -21,14 +21,10 @@ module "streamlit_service" {
   name = "jit-streamlit"
 
   primary_container = {
-    image          = "${module.streamlit_ecr.repository_url}:${data.aws_ssm_parameter.image_tag.value}"
+    image          = "${data.aws_ecr_repository.streamlit.repository_url}:${data.aws_ssm_parameter.image_tag.value}"
     container_port = 8080
     environment    = local.container_env
   }
 
   task_iam_role_arn = module.ecs_task_role.role_arn
-
-  runtime_platform = {
-    cpu_architecture = "ARM64"
-  }
 }
