@@ -24,11 +24,6 @@ variable "principals" {
     identifiers = list(string)
   })
   default = null
-
-  validation {
-    condition     = var.assume_role_policy != null || var.principals != null
-    error_message = "Either assume_role_policy or principals must be provided."
-  }
 }
 
 #------------------------------------------------------------------------------
