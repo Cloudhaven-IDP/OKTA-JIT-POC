@@ -3,8 +3,10 @@ resource "okta_user" "reviewer" {
   login      = local.reviewer_email
   first_name = split("@", local.reviewer_email)[0]
   last_name  = "Reviewer"
+  department = "engineering"
   custom_profile_attributes = jsonencode({
-    department = "engineering"
-    subteam    = "developers"
+    subteam = "developers"
   })
+
+  depends_on = [okta_user_schema_property.subteam]
 }

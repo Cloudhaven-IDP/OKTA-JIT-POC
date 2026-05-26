@@ -1,9 +1,11 @@
 locals {
+  subteam_attr = okta_user_schema_property.subteam.index
+
   okta_group_rules = {
     jit-requesters    = { expr = "user.department == \"engineering\"", group = "jit-requesters" }
-    team-developers   = { expr = "user.subteam == \"developers\"", group = "team-developers" }
-    team-data-science = { expr = "user.subteam == \"data-science\"", group = "team-data-science" }
-    team-platform     = { expr = "user.subteam == \"platform\"", group = "team-platform" }
+    team-developers   = { expr = "user.${local.subteam_attr} == \"developers\"", group = "team-developers" }
+    team-data-science = { expr = "user.${local.subteam_attr} == \"data-science\"", group = "team-data-science" }
+    team-platform     = { expr = "user.${local.subteam_attr} == \"platform\"", group = "team-platform" }
   }
 }
 

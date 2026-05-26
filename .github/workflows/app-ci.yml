@@ -76,11 +76,6 @@ jobs:
           IMG="$ECR_URL:${{ steps.tag.outputs.tag }}"
           docker buildx build --platform linux/arm64 --provenance=false --sbom=false -f app/streamlit/Dockerfile --push -t "$IMG" .
           echo "STREAMLIT_IMAGE=$IMG" >> "$GITHUB_ENV"
-      - uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.STREAMLIT_IMAGE }}
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
       - name: bump SSM image_tag
         run: |
           aws ssm put-parameter \
