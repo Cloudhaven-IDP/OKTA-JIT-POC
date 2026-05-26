@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM --platform=linux/arm64 ghcr.io/astral-sh/uv:0.11.16-python3.12-trixie AS builder
+FROM ghcr.io/astral-sh/uv:0.11.16-python3.12-trixie AS builder
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY pyproject.toml uv.lock ./
@@ -7,7 +7,7 @@ COPY app/streamlit/pyproject.toml         app/streamlit/pyproject.toml
 COPY app/lambdas/janitor/pyproject.toml   app/lambdas/janitor/pyproject.toml
 RUN uv sync --frozen --no-dev --package jit-streamlit
 
-FROM --platform=linux/arm64 python:3.12-slim
+FROM python:3.12-slim
 RUN groupadd -g 10001 app && useradd -u 10001 -g app -s /bin/false -m -d /home/app app
 WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
