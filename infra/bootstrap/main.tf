@@ -29,19 +29,10 @@ module "tfstate_lock" {
   }
 }
 
-resource "aws_iam_openid_connect_provider" "github" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = data.tls_certificate.github.certificates[*].sha1_fingerprint
-  tags = {
-    purpose = "github-oidc"
-  }
-}
-
 module "tf_plan_role" {
   source = "../modules/aws/iam/role"
 
-  role_name          = "jit-tf-plan"
+  role_name          = "jit-aws-planner"
   description        = "Read-only TF plan role for PR checks (assumed via GitHub OIDC)."
   assume_role_policy = data.aws_iam_policy_document.tf_plan_trust.json
   policy_arns        = ["arn:aws:iam::aws:policy/ReadOnlyAccess"]
@@ -50,7 +41,7 @@ module "tf_plan_role" {
 module "aws_deployer_role" {
   source = "../modules/aws/iam/role"
 
-  role_name          = "aws_deployer"
+  role_name          = "jit_aws_deployer"
   description        = "TF apply + image push + SSM updates (assumed via GitHub OIDC from main branch only)."
   assume_role_policy = data.aws_iam_policy_document.aws_deployer_trust.json
   policy_arns        = ["arn:aws:iam::aws:policy/PowerUserAccess"]

@@ -1,4 +1,4 @@
-data "tls_certificate" "github" {
+data "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
 }
 
@@ -8,7 +8,7 @@ data "aws_iam_policy_document" "tf_plan_trust" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      identifiers = [data.aws_iam_openid_connect_provider.github.arn]
     }
     condition {
       test     = "StringEquals"
@@ -29,7 +29,7 @@ data "aws_iam_policy_document" "aws_deployer_trust" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      identifiers = [data.aws_iam_openid_connect_provider.github.arn]
     }
     condition {
       test     = "StringEquals"
@@ -43,4 +43,3 @@ data "aws_iam_policy_document" "aws_deployer_trust" {
     }
   }
 }
-
