@@ -64,11 +64,6 @@ data "aws_iam_policy_document" "ecs_task_inline" {
       "s3:DeleteBucketPolicy",
     ]
     resources = ["*"]
-    condition {
-      test     = "StringEquals"
-      variable = "s3:ResourceTag/JIT"
-      values   = ["true"]
-    }
   }
 
   statement {
