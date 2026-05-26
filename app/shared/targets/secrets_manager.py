@@ -4,7 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def _sid(gid: str) -> str: return f"jit-{gid}"
+def _sid(gid: str) -> str: return f"jit{gid}"  # Secrets Manager Sid must be alphanumeric
 
 
 class SecretsManagerTarget:
