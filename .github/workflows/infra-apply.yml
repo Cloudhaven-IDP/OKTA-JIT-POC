@@ -193,9 +193,10 @@ jobs:
           terraform apply -auto-approve -var "github_repo=${{ github.repository }}"
 
   apply-jit-frontend:
-    needs: [detect, seed-images]
+    needs: [detect, seed-images, apply-janitor]
     if: always()
         && needs.seed-images.result == 'success'
+        && needs.apply-janitor.result != 'failure'
         && needs.detect.outputs.jit_frontend == 'true'
     runs-on: ubuntu-latest
     steps:
