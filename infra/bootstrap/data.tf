@@ -91,4 +91,13 @@ data "aws_iam_policy_document" "aws_deployer_iam" {
     ]
     resources = ["*"]
   }
+  statement {
+    sid    = "ReadSSOSAMLProvider"
+    effect = "Allow"
+    actions = [
+      "iam:GetSAMLProvider",
+      "iam:ListSAMLProviders",
+    ]
+    resources = ["*"]
+  }
 }
