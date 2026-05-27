@@ -123,6 +123,17 @@ resources actually go away. Re-dispatching `infra-destroy` finishes the
 job. Teardown takes longer than the apply did, and the first attempt
 looking stuck is normal.
 
+### Express destroys leave orphan target groups and task definitions
+
+After `infra-destroy` finishes, the target group the Express service
+sat behind is sometimes still in the account, unattached to any load
+balancer. The ECS task definitions also stick around; task defs are
+versioned, and AWS keeps every revision unless you explicitly
+deregister it. Neither costs anything meaningful, but both show up in
+the console looking like leftover state. Manual cleanup is one
+`aws elbv2 delete-target-group` per orphan and a loop over
+`aws ecs deregister-task-definition` against the `ACTIVE` revisions.
+
 ### Terraform destroy races on IAM and DynamoDB
 
 IAM role detachments and DynamoDB table deletions occasionally race
