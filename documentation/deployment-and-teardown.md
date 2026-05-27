@@ -1,9 +1,9 @@
-# Deployment and teardown
+# 🚢 Deployment and teardown
 
 Architecture, the technical decisions behind it, and the actual steps to
 stand it up and take it back down.
 
-## Architecture at a glance
+## 🏛 Architecture at a glance
 
 Two halves with a single seam.
 
@@ -24,7 +24,7 @@ The two halves meet at SSM Parameter Store. `app-ci` writes
 `infra-apply` to update the running services. The infra side never
 builds images; the app side never runs `terraform apply`.
 
-## Why ECS Express for the portal
+## 🐳 Why ECS Express for the portal
 
 This is a POC. We wanted a managed way to ship a single container and
 get HTTPS, networking, autoscaling, and a hostname without writing any
@@ -48,22 +48,38 @@ knobs back, but the incremental work didn't justify it for a POC. If
 this graduated to production, the portal would move to Fargate behind
 an internal-scheme ALB and a corporate domain.
 
-## Why Lambda plus EventBridge Scheduler for the Janitor
+## ⏰ Why Lambda plus EventBridge Scheduler for the Janitor
 
 The Janitor is small, scheduled, and single-purpose: read a grant,
 mutate a resource policy, update a row. It has no steady-state load
 between firings, so a long-running container would burn money for no
 reason. Lambda is the obvious shape.
 
-The trigger is EventBridge Scheduler rather than cron or a recurring
-sweep. When the portal approves a grant, it creates a one-shot
-schedule pointed at the Janitor with the `grant_id` baked into the
-payload, and the schedule self-deletes after firing
-(`ActionAfterCompletion: DELETE`). We don't have to run a global
-sweep, can't miss a revocation window, and don't need a queue to
-manage.
+We use EventBridge Scheduler as the trigger. When the portal approves
+a grant, it creates a one-shot schedule pointed at the Janitor with
+the `grant_id` baked into the payload. The schedule fires once at
+expiry, the Janitor runs, and the schedule self-deletes via
+`ActionAfterCompletion: DELETE`.
 
-## Why DynamoDB for the grants table
+We picked EventBridge Scheduler over a periodic sweep because each
+grant ends up with its own firing time, scheduled at the exact moment
+revoke needs to happen. No periodic scan over the table asking "who's
+expired," no risk of missing a window because a sweep ran late, no
+queue to manage. Native AWS, serverless, and the Lambda + IAM wiring
+is one step.
+
+Capacity also stops being a question. EventBridge Scheduler supports
+up to a million schedules per account by default, and each grant gets
+its own entry. Hundreds of concurrent JIT grants in flight don't need
+tuning, batching, or a queue in front of anything; the service
+absorbs them.
+
+One thing worth flagging: the first deploy of the Janitor needs a
+placeholder image in ECR or `lambda:CreateFunction` rejects the apply.
+The `seed-images` job in `infra-apply` handles that. Full write-up in
+[`quirks.md`](quirks.md).
+
+## 📒 Why DynamoDB for the grants table
 
 The grants table is the audit ledger. Every request, every approval,
 every revocation, including the justification and the ticket
@@ -80,7 +96,14 @@ TTL is deliberately not enabled. Grants don't disappear; their status
 flips to `revoked`. That's what makes the table useful as a ledger
 later.
 
-## Why S3 and Secrets Manager as the first target types
+It also scales without anyone having to think about it. DynamoDB in
+on-demand mode handles thousands of writes a second out of the box,
+so the table doesn't become the bottleneck when a team goes from a
+handful of grants per day to hundreds of concurrent requests. We
+don't have to provision capacity, predict spikes, or stage growth.
+The table absorbs whatever the portal throws at it.
+
+## 🪣🔑 Why S3 and Secrets Manager as the first target types
 
 Two target types, picked to validate the `Target` abstraction in
 `app/shared/targets/`. S3 buckets and Secrets Manager secrets both
@@ -90,17 +113,7 @@ requires a VPC, and neither needs a separate identity provider in the
 loop. Adding RDS or SQS later is a new `Target` implementation, not a
 rearchitecture.
 
-## Why IAM Identity Center for AWS access
-
-Native AWS, gives us a permission set and a managed identity store
-without rolling SAML and assume-role wiring by hand. The cost is
-giving up app-level Okta SSO for the AWS access portal in the POC;
-users get one IDC permission set, and the Streamlit portal uses a
-test-user selector instead of real SSO. The roadmap for federating
-Okta into IDC is noted in [`quirks.md`](quirks.md) under "No SCIM, no
-SAML."
-
-## Deployment flow
+## 📤 Deployment flow
 
 1. Run `scripts/check-prereqs.sh`. Verifies local tooling and that
    the AWS account has the permissions, IDC, and default VPC the POC
@@ -124,7 +137,7 @@ SAML."
 7. Open the Streamlit URL from the `apply-jit-frontend` run summary
    and log in.
 
-## Teardown flow
+## 🧹 Teardown flow
 
 1. Dispatch `infra-destroy` with all four boxes ticked. The workflow
    tears down `aws-app/jit-frontend`, `aws-app/janitor`, `okta`, and
