@@ -223,7 +223,7 @@ jobs:
       - name: surface streamlit URL
         run: |
           set -euo pipefail
-          URL="https://jit-streamlit.ecs.us-east-1.on.aws/"
+          URL="https://jit-frontend.ecs.us-east-1.on.aws/"
           {
             echo "## Streamlit URL"
             echo ""

@@ -18,7 +18,7 @@ module "streamlit_service" {
   source  = "terraform-aws-modules/ecs/aws//modules/express-service"
   version = "~> 7.4"
 
-  name = "jit-streamlit"
+  name = "jit-frontend"
 
   primary_container = {
     image          = "${data.aws_ecr_repository.streamlit.repository_url}:${data.aws_ssm_parameter.image_tag.value}"

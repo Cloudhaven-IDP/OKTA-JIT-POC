@@ -6,7 +6,7 @@ The Streamlit JIT portal.
 
 - `jit-streamlit` ECR repo
 - `jit-ecs-task` IAM role (Streamlit's runtime role; DDB writes, ABAC-gated target policy admin, scheduler CRUD, iam:PassRole on janitor invocation role, Okta secret read, ResourceGroupsTaggingAPI read).
-- `jit-streamlit` ECS Express Mode service (arm64, single container, public HTTPS URL via `*.ecs.<region>.on.aws`).
+- `jit-frontend` ECS Express Mode service (amd64, single container, public HTTPS URL via `*.ecs.<region>.on.aws`).
 - `/jit/jit-frontend/image_tag` SSM param.
 
 ## Reads

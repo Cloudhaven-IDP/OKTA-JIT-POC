@@ -38,9 +38,9 @@ empty_ecr_repo() {
 }
 
 scale_down_streamlit() {
-  aws ecs update-service --cluster default --service jit-streamlit \
+  aws ecs update-service --cluster default --service jit-frontend \
     --desired-count 0 --region us-east-1 >/dev/null 2>&1 || true
-  aws ecs wait services-stable --cluster default --services jit-streamlit \
+  aws ecs wait services-stable --cluster default --services jit-frontend \
     --region us-east-1 2>/dev/null || true
 }
 
