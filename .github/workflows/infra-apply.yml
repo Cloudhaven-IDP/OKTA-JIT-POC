@@ -220,13 +220,14 @@ jobs:
           set -euo pipefail
           terraform init -backend-config="bucket=${{ vars.STATE_BUCKET_NAME }}"
           terraform apply -auto-approve
-      - name: surface streamlit URL
+      - name: surface streamlit console link
         run: |
           set -euo pipefail
-          URL="https://jit-frontend.ecs.us-east-1.on.aws/"
+          CONSOLE="https://us-east-1.console.aws.amazon.com/ecs/v2/clusters/default/express-services/jit-frontend/resources"
           {
-            echo "## Streamlit URL"
+            echo "## Streamlit"
             echo ""
-            echo "[$URL]($URL)"
-            echo "This Url is presumed if you run into any issue please confirm on the console"
+            echo "AWS assigns a random hostname per express service. Open the console to grab the live Application URL:"
+            echo ""
+            echo "[$CONSOLE]($CONSOLE)"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -11,20 +11,16 @@ The Streamlit JIT portal.
 
 ## Reads
 
-Direct AWS data sources (no SSM intermediary): `data "aws_dynamodb_table"`, `data "aws_lambda_function"`, `data "aws_iam_role"`, `data "aws_secretsmanager_secret"`. Plus `/jit/setup/reviewer_email` and `/jit/jit-frontend/image_tag` SSM params.
+Direct AWS data sources (no SSM intermediary): `data "aws_dynamodb_table"`, `data "aws_lambda_function"`, `data "aws_iam_role"`, `data "aws_secretsmanager_secret"`. Plus `/jit/setup/test_users` and `/jit/jit-frontend/image_tag` SSM params.
 
 Targets are discovered by Streamlit at runtime via ResourceGroupsTaggingAPI on `JIT=true`.
 
 ## Apply
 
-```bash
-STATE_BUCKET=$(jq -r .state_bucket_name.value ../../../bootstrap-outputs.json)
-terraform init -backend-config="bucket=$STATE_BUCKET"
-terraform apply -auto-approve
-```
+Applied by the `infra-apply` workflow under the deployer OIDC role. See [`../../README.md`](../../README.md) for the walkthrough.
 
-Apply order: `okta → aws-base → janitor → jit-frontend`.
+Dependencies inside the workflow: `aws-base` (writes `/jit/setup/test_users` and `/jit/setup/aws_start_url`) and `seed-images` (pushes the `:bootstrap` Streamlit image so the ECS task def has something to launch).
 
 ## Destroy
 
-Use the repo-root `cleanup.sh`.
+Destroyed by the `infra-destroy` workflow. See [`../../README.md`](../../README.md#how-teardown-happens).

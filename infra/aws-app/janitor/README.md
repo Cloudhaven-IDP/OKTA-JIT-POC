@@ -13,12 +13,8 @@ The Janitor Lambda + scheduler group + supporting IAM and ECR.
 
 ## Apply
 
-```bash
-STATE_BUCKET=$(jq -r .state_bucket_name.value ../../../bootstrap-outputs.json)
-terraform init -backend-config="bucket=$STATE_BUCKET"
-terraform apply -var "github_repo=owner/repo" -auto-approve
-```
+Applied by the `infra-apply` workflow under the deployer OIDC role. The workflow's `seed-images` job pushes the `:bootstrap` placeholder to ECR before this stack runs so `lambda:CreateFunction` has a valid image to reference. See [`../../README.md`](../../README.md) for the walkthrough.
 
 ## Destroy
 
-Use the repo-root `cleanup.sh`.
+Destroyed by the `infra-destroy` workflow. See [`../../README.md`](../../README.md#how-teardown-happens).

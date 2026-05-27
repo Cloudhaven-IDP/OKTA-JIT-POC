@@ -11,9 +11,12 @@ Local-state stack run once with admin credentials. Creates the things every othe
 | `jit-tfstate-<random>` (S3) | Terraform state bucket for all other stacks |
 | `jit-tfstate-lock` (DynamoDB) | State locking |
 | GitHub OIDC provider | Federation for CI/CD |
-| `jit-tf-plan` role | Read-only; assumed by PR plan jobs from any branch |
-| `aws_deployer` role | Write; assumed by main-branch apply + image push + SSM updates |
+| `jit-aws-planner` IAM role | Read-only; assumed by PR plan jobs from any branch |
+| `jit_aws_deployer` IAM role | Write; assumed by main-branch apply + image push + SSM updates |
 | `/jit/okta/api-token` (Secrets Manager) | Okta provider auth for subsequent stacks |
+| `STATE_BUCKET_NAME` (GitHub Actions var) | State bucket name; plumbed into the workflows' `-backend-config` |
+| `TF_PLAN_ROLE_ARN` (GitHub Actions var) | OIDC role ARN assumed by plan jobs |
+| `AWS_DEPLOYER_ROLE_ARN` (GitHub Actions var) | OIDC role ARN assumed by apply and destroy jobs |
 
 ## Apply
 
@@ -29,4 +32,4 @@ terraform apply \
 
 ## Destroy
 
-Use `./cleanup.sh` (also called by the repo-root `cleanup.sh`). It runs `terraform destroy`, then removes the local state files so the directory can be re-initialized cleanly.
+Run `./cleanup.sh` after the `infra-destroy` workflow has finished tearing down the non-bootstrap stacks. It runs `terraform destroy`, removes the local state files, and clears `bootstrap-outputs.json` at the repo root so the directory can be re-initialized cleanly.

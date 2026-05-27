@@ -23,4 +23,7 @@ fi
 echo "    Removing local state + .terraform/"
 rm -rf terraform.tfstate terraform.tfstate.backup .terraform .terraform.lock.hcl
 
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+rm -f "$REPO_ROOT/bootstrap-outputs.json"
+
 echo "✓ Bootstrap directory clean."

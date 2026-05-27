@@ -13,12 +13,8 @@ App stacks (`aws-app/janitor`, `aws-app/jit-frontend`) discover JIT targets at r
 
 ## Apply
 
-```bash
-STATE_BUCKET=$(jq -r .state_bucket_name.value ../../bootstrap-outputs.json)
-terraform init -backend-config="bucket=$STATE_BUCKET"
-terraform apply -auto-approve
-```
+Applied by the `infra-apply` workflow under the deployer OIDC role. See [`../README.md`](../README.md) for the workflow walkthrough.
 
 ## Destroy
 
-Use the repo-root `cleanup.sh`.
+Destroyed by the `infra-destroy` workflow. See [`../README.md`](../README.md#how-teardown-happens).

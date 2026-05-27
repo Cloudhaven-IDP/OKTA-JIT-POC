@@ -1,20 +1,11 @@
 # Okta stack
 
-Manages Okta-as-code: groups, group rules, IDC SAML app + SCIM, sign-on policy.
+Manages Okta-as-code: users (sourced from [`../identity.yaml`](../identity.yaml)), groups, group rules, the AWS Access Portal bookmark tile, and the sign-on policy. SAML federation and SCIM provisioning between Okta and AWS Identity Center are a future enhancement; see [`../../documentation/quirks.md`](../../documentation/quirks.md) under "No SCIM, no SAML".
 
 ## Apply
 
-State bucket comes from bootstrap output, passed via `-backend-config`:
-```bash
-STATE_BUCKET=$(jq -r .state_bucket_name.value ../../bootstrap-outputs.json)
-terraform init -backend-config="bucket=$STATE_BUCKET"
-terraform apply -auto-approve
-```
-
-After apply, paste `terraform output -raw aws_idc_app_metadata_url` into the AWS console: IAM Identity Center → Settings → Identity source → External identity provider.
+Applied by the `infra-apply` workflow under the deployer OIDC role. See [`../README.md`](../README.md) for the workflow walkthrough.
 
 ## Destroy
 
-```bash
-./cleanup.sh
-```
+Destroyed by the `infra-destroy` workflow. See [`../README.md`](../README.md#how-teardown-happens).
