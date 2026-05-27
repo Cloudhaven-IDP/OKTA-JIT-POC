@@ -1,4 +1,4 @@
-# JIT-as-a-Pipeline
+# 🔐 JIT-as-a-Pipeline
 
 A workflow for granting least-privilege access on demand. Engineers request the
 permissions they need for a specific job, access is scoped to that job, and it's
@@ -9,11 +9,16 @@ a stuck SQS queue, or an engineer needs to update a secret backing a production
 service. They open the portal, ask for the access, get it for the window they
 asked for, and the system pulls it back when the timer ends.
 
-## What this is
+## 🏗 What this is
 
 A monorepo for the infrastructure and the application code that runs the POC.
 
-## Quick start
+## 🚀 Quick start
+
+🍴 **Fork the repo before you do anything else.** Bootstrap wires your fork
+into AWS via OIDC and writes GitHub Actions variables into the fork itself.
+You can't run this against the upstream; the deployer role won't trust your
+runs, and you can't write Actions variables into a repo you don't own.
 
 You'll need locally: Terraform, AWS CLI, `jq`, `uv`, and `gh` (or a
 `GITHUB_TOKEN` exported). On the AWS side: credentials with permission to
@@ -46,17 +51,18 @@ locally. It's a singleton, and it has to exist before anything downstream can
 read state or assume a deployer role. Every other stack is applied by the
 `infra-apply` GitHub Actions workflow under the OIDC role, not by the user.
 
-The project runs on any Okta tenant and any AWS account, but the safer setup is
-a developer or integrator tenant from [developer.okta.com](https://developer.okta.com)
-and a sandbox or fresh AWS account. This POC touches IAM and IAM Identity
-Center, neither of which you want tangled up with production.
+🧪 The project runs on any Okta tenant and any AWS account, but the safer
+setup is a developer or integrator tenant from
+[developer.okta.com](https://developer.okta.com) and a sandbox or fresh AWS
+account. This POC touches IAM and IAM Identity Center, neither of which you
+want tangled up with production.
 
-Teardown is split the same way: the `infra-destroy` workflow tears the
+🧹 Teardown is split the same way: the `infra-destroy` workflow tears the
 stacks down under the OIDC role, then `infra/bootstrap/cleanup.sh` runs
 locally to remove the state bucket and its supporting resources. The
 walkthrough is in [`infra/README.md`](infra/README.md#how-teardown-happens).
 
-## How JIT works
+## ⚡ How JIT works
 
 A user opens the portal, picks the resource they need access to, picks the
 actions, picks a duration, and writes a justification. If the request clears
@@ -67,7 +73,7 @@ Okta is the identity provider. The POC ships with two resource types, S3
 buckets and Secrets Manager secrets, and the same shape extends to anything
 else that supports a resource policy.
 
-## Repo map
+## 🗺 Repo map
 
 ```
 infra/              Terraform stacks and Okta-as-code
@@ -77,11 +83,11 @@ scripts/            bootstrap, teardown, and quality-of-life scripts
 documentation/      overview, deployment-and-teardown, and quirks
 ```
 
-## What's missing (and what's next)
+## 🚧 What's missing (and what's next)
 
 This is a POC. SCIM provisioning, SAML federation between Okta and AWS Identity
 Center, app-level SSO, cross-team authorization, multi-account promotion, and a
-runtime policy layer aren't here yet. Without SCIM and SAML, you'll have to
+runtime policy layer aren't here yet. 📧 Without SCIM and SAML, you'll have to
 click through both the AWS Identity Center invitation email and the Okta
 invitation email by hand after bootstrap before you can log into the portal.
 
