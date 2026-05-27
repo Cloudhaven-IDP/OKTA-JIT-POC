@@ -10,10 +10,7 @@ variable "description" {
 
 variable "image_uri" {
   type        = string
-  description = "Image URI. By default we put a dummy lambda image as placeholder; it is intended to be overridden by CD pipeline, so it is ignored by lifecycle policy."
-
-  # See dummy code under base/EWS-SHARED/dummy-lambda
-  default = "355915365838.dkr.ecr.us-east-1.amazonaws.com/ml-ews/dummy-lambda:5cbd43b"
+  description = "Image URI for the Lambda container. Intended to be updated by the CD pipeline, so it is ignored by lifecycle policy after initial create."
 }
 
 variable "image_arn" {
@@ -118,7 +115,7 @@ variable "lambda_public_url_cors" {
 }
 
 variable "env" {
-  description = "Environment name (e.g. EWS-DEV, EWS-STAGE) - maps to VPC ID and RDS subnet group name"
+  description = "Environment name (e.g. DEV, STAGE) - maps to VPC ID and RDS subnet group name"
   type        = string
 }
 
@@ -129,8 +126,6 @@ variable "attach_to_vpc" {
 }
 
 variable "subnet_ids" {
-  # NOTE: As we set that only one sg is used, it will consume exactly 1 IP per subnet.
-  #       Ref: https://aws.amazon.com/blogs/compute/announcing-improved-vpc-networking-for-aws-lambda-functions/
   description = "Subnet IDs to deploy lambda to"
   type        = list(string)
   default     = []

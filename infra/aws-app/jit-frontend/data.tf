@@ -26,8 +26,8 @@ data "aws_ssm_parameter" "image_tag" {
   depends_on = [aws_ssm_parameter.image_tag]
 }
 
-data "aws_ssm_parameter" "reviewer_email" {
-  name = "/jit/setup/reviewer_email"
+data "aws_ssm_parameter" "test_users" {
+  name = "/jit/setup/test_users"
 }
 
 data "aws_iam_policy_document" "ecs_task_trust" {

@@ -32,9 +32,3 @@ def test_revoke_only_that_sid(s3_bucket):
     t.revoke_by_grant_id("g1")
     sids = [s["Sid"] for s in _policy(s3_bucket)["Statement"]]
     assert "jitg2" in sids and "jitg1" not in sids
-
-
-def test_connection_instructions_scalable(s3_bucket):
-    t = S3Target(s3_bucket)
-    instr = t.connection_instructions(profile="reviewer")
-    assert "aws s3" in instr and s3_bucket in instr

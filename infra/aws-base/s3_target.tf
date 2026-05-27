@@ -10,6 +10,7 @@ module "s3_target" {
   versioning_enabled       = true
   enforce_secure_transport = true
   generate_access_policies = false
+  force_destroy            = true
 
   tags = {
     JIT            = "true"

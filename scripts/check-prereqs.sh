@@ -17,7 +17,6 @@ FAIL=0
 echo "── Tooling ──"
 need "Terraform" terraform
 need "AWS CLI"   aws
-need "Docker"    docker
 need "jq"        jq
 need "uv"        uv
 

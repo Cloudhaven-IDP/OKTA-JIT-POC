@@ -21,3 +21,8 @@ output "okta_secret_name" {
 output "okta_secret_arn" {
   value = module.okta_api_token_secret.arn
 }
+
+output "github_repo" {
+  description = "owner/repo of the GH repository the github provider is authenticated against. Used by cleanup.sh to destroy the correct repo's Actions variables."
+  value       = var.github_repo
+}

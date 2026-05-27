@@ -10,10 +10,12 @@ echo "==> Bootstrap cleanup"
 if [ ! -f "terraform.tfstate" ] && [ ! -d ".terraform" ]; then
   echo "    No local state found. Nothing to destroy."
 else
-  # Required variables must be passed even for destroy; the values aren't used,
-  # but Terraform validates them. Use harmless placeholders.
+  # github_repo is NOT a placeholder for destroy: the github provider's `owner`
+  # is derived from it, and we need the DELETE calls to target the real repo
+  # so the Actions variables actually get removed. Read it back from state.
+  REAL_REPO=$(terraform output -raw github_repo 2>/dev/null || echo "placeholder/placeholder")
   terraform destroy -auto-approve \
-    -var "github_repo=placeholder/placeholder" \
+    -var "github_repo=$REAL_REPO" \
     -var "okta_org_url=https://placeholder.okta.com" \
     -var "okta_api_token=placeholder"
 fi

@@ -52,3 +52,20 @@ resource "aws_ssoadmin_account_assignment" "group_assignment" {
   target_id   = var.account_ids[0]
   target_type = "AWS_ACCOUNT"
 }
+
+locals {
+  group_memberships = merge([
+    for group_name, user_ids in var.members : {
+      for user_id in user_ids :
+      "${group_name}:${user_id}" => { group_name = group_name, user_id = user_id }
+    }
+  ]...)
+}
+
+resource "aws_identitystore_group_membership" "this" {
+  for_each = local.group_memberships
+
+  identity_store_id = local.identity_store_id
+  group_id          = aws_identitystore_group.this[each.value.group_name].group_id
+  member_id         = each.value.user_id
+}

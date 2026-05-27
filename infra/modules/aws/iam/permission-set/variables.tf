@@ -57,3 +57,9 @@ variable "inline_policy" {
   type    = string
   default = null
 }
+
+variable "members" {
+  description = "Map of group_name to list of aws_identitystore user IDs to make members of that group. Group name must also appear in var.group_names."
+  type        = map(list(string))
+  default     = {}
+}

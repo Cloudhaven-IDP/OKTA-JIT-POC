@@ -9,7 +9,7 @@ locals {
     { name = "OKTA_SECRET_NAME", value = data.aws_secretsmanager_secret.okta_token.name },
     { name = "AWS_ACCOUNT_ID", value = data.aws_caller_identity.current.account_id },
     { name = "PRINCIPAL_PATTERN_TEMPLATE", value = local.principal_pattern_template },
-    { name = "TEST_USERS", value = data.aws_ssm_parameter.reviewer_email.value },
+    { name = "TEST_USERS", value = data.aws_ssm_parameter.test_users.value },
     { name = "USE_OKTA_SSO", value = "false" },
   ]
 }

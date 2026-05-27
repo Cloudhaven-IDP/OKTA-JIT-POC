@@ -20,7 +20,7 @@ if config.use_okta_sso():
 
 users = config.test_users()
 if not users:
-    st.warning("TEST_USERS env is empty. Set it via the reviewer_email TF var.")
+    st.warning("No test users configured. See instructions on Adding users to OKTA")
     st.stop()
 
 user_email = st.selectbox("Acting as", users)
@@ -57,7 +57,7 @@ actions = st.multiselect(
     default=registry.actions_for(target_type)[:1],
 )
 
-DURATIONS = {"30 minutes": 30, "1 hour": 60, "3 hours": 180, "6 hours": 360}
+DURATIONS = {"5 minutes": 5, "30 minutes": 30, "1 hour": 60, "3 hours": 180, "6 hours": 360}
 duration = DURATIONS[st.selectbox("Duration", list(DURATIONS.keys()), index=1)]
 justification = st.text_area("Justification (≥20 chars)", height=100)
 ticket_ref = st.text_input("Ticket ref (optional)")
@@ -115,5 +115,5 @@ if st.button("Request access", type="primary"):
         ticket_ref=ticket_ref or None,
     ))
 
-    st.success(f"Granted. `{grant_id}` expires at {expires_at.isoformat()}")
-    st.code(target.connection_instructions(profile="jit"), language="bash")
+    st.success(f"Grant `{grant_id}` created — expires at {expires_at.isoformat()}.")
+    st.info("Allow ~5 minutes for propagation, then assume your jit-requester AWS identity.")

@@ -50,9 +50,3 @@ class SecretsManagerTarget:
         p = self._read()
         p["Statement"] = [s for s in p["Statement"] if s.get("Sid") != _sid(grant_id)]
         self._write(p)
-
-    def connection_instructions(self, *, profile: str = "default") -> str:
-        return (
-            f"aws sso login --profile {profile}\n"
-            f"aws secretsmanager get-secret-value --secret-id {self.secret_arn} --profile {profile}"
-        )

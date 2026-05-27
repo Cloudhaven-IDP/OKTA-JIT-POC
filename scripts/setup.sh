@@ -1,65 +1,66 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 ./scripts/check-prereqs.sh
+./scripts/setup_identity.py
+./scripts/check_identity.py infra/identity.yaml
 
 read -rp "GitHub repo (owner/repo): " GITHUB_REPO
-echo "    Okta tenant URL — e.g., https://integrator-5647961.okta.com (NOT the -admin URL)"
+echo "    Okta tenant URL — e.g., https://xxxxxx.okta.com... We suggest creating a test/integrator account at https://developer.okta.com"
 read -rp "Okta org URL: " OKTA_ORG
 read -rsp "Okta API token: " OKTA_TOKEN; echo
-echo "    Your email (seeded as Okta user; populates the Streamlit TEST_USERS dropdown)"
-read -rp "Your email: " REVIEWER_EMAIL
-echo "    GitHub PAT (scopes: repo, admin:repo_hook). ENTER to skip if GITHUB_TOKEN is set."
-read -rsp "GitHub token: " GITHUB_PAT; echo
-if [ -n "$GITHUB_PAT" ]; then
-  export GITHUB_TOKEN="$GITHUB_PAT"
+
+if [ -z "${GITHUB_TOKEN:-}" ]; then
+  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+    export GITHUB_TOKEN="$(gh auth token)"
+  else
+    echo "    GitHub PAT (scopes: repo, admin:repo_hook)."
+    read -rsp "GitHub token: " GITHUB_PAT; echo
+    export GITHUB_TOKEN="$GITHUB_PAT"
+  fi
+fi
+
+# Exported once so every `terraform` invocation (init, import, plan, apply) sees the same values.
+export TF_VAR_github_repo="$GITHUB_REPO"
+export TF_VAR_okta_org_url="$OKTA_ORG"
+export TF_VAR_okta_api_token="$OKTA_TOKEN"
+
+# GitHub OIDC provider is an account-singleton.
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+OIDC_ARN="arn:aws:iam::${ACCOUNT}:oidc-provider/token.actions.githubusercontent.com"
+if ! aws iam get-open-id-connect-provider --open-id-connect-provider-arn "$OIDC_ARN" >/dev/null 2>&1; then
+  echo "==> Creating GitHub OIDC provider (none exists yet)"
+  aws iam create-open-id-connect-provider \
+    --url https://token.actions.githubusercontent.com \
+    --client-id-list sts.amazonaws.com \
+    --thumbprint-list 6938fd4d98bab03faadb97b34396831e3780aea1 >/dev/null
 fi
 
 pushd infra/bootstrap >/dev/null
 terraform init -upgrade
-terraform apply -auto-approve \
-  -var "github_repo=$GITHUB_REPO" \
-  -var "okta_org_url=$OKTA_ORG" \
-  -var "okta_api_token=$OKTA_TOKEN"
+terraform apply -auto-approve
 terraform output -json > "$ROOT/bootstrap-outputs.json"
-STATE_BUCKET=$(terraform output -raw state_bucket_name)
-popd >/dev/null
-
-# Persist reviewer_email so subsequent applies (and workflow_dispatch from CI) can read it.
-aws ssm put-parameter \
-  --name /jit/setup/reviewer_email \
-  --value "$REVIEWER_EMAIL" \
-  --type String --overwrite >/dev/null
-
-pushd infra/okta >/dev/null
-terraform init -upgrade -backend-config="bucket=$STATE_BUCKET"
-terraform apply -auto-approve
-popd >/dev/null
-
-pushd infra/aws-base >/dev/null
-terraform init -upgrade -backend-config="bucket=$STATE_BUCKET"
-terraform apply -auto-approve
-popd >/dev/null
-
-# aws-app stacks apply before app-ci so ECR repos exist. Lambda uses a public placeholder
-# image; ECS Express won't pull cleanly until app-ci pushes a real Streamlit image.
-pushd infra/aws-app/janitor >/dev/null
-terraform init -upgrade -backend-config="bucket=$STATE_BUCKET"
-terraform apply -auto-approve -var "github_repo=$GITHUB_REPO"
-popd >/dev/null
-
-pushd infra/aws-app/jit-frontend >/dev/null
-terraform init -upgrade -backend-config="bucket=$STATE_BUCKET"
-terraform apply -auto-approve
 popd >/dev/null
 
 echo ""
-echo "✓ Setup complete."
-echo "  Push to '$GITHUB_REPO' main to trigger app-ci (builds + pushes images,"
-echo "  updates the Janitor function, dispatches infra-apply for jit-frontend)."
+echo "✓ Bootstrap complete."
 echo ""
-echo "  Streamlit URL (after app-ci finishes):"
-echo "    cd infra/aws-app/jit-frontend && terraform init -backend-config=\"bucket=$STATE_BUCKET\" && terraform output -raw streamlit_url"
+echo "Next:"
+echo "  1. Commit infra/identity.yaml and push to main:"
+echo ""
+echo "       git add infra/identity.yaml && git commit -m \"seed identity\" && git push"
+echo ""
+echo "  2. Open infra-apply, click 'Run workflow', tick all four boxes"
+echo "     (aws_base, okta, janitor, jit_frontend) on the first run:"
+echo ""
+echo "       https://github.com/$GITHUB_REPO/actions/workflows/infra-apply.yml"
+echo ""
+echo "  3. After it finishes (~6-8 min), open app-ci and click 'Run workflow'"
+echo "     to push the real images:"
+echo ""
+echo "       https://github.com/$GITHUB_REPO/actions/workflows/app-ci.yml"
+echo ""
+echo "  4. The apply-jit-frontend step prints the Streamlit URL in its run summary."

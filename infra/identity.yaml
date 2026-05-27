@@ -1,0 +1,6 @@
+users:
+- email: afolabi.fajobi1@gmail.com
+  first_name: afolabi
+  last_name: fajobi
+  groups:
+  - jit-requesters

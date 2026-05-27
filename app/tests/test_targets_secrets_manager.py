@@ -15,8 +15,3 @@ def test_grant_then_revoke(sm_arn):
     t.grant("arn:aws:sts::1:assumed-role/X/u", ["secretsmanager:GetSecretValue"], "g")
     t.revoke_by_grant_id("g")
     # No assert needed beyond "doesn't raise" — full policy round-trip is exercised in test_janitor.
-
-
-def test_connection_instructions_includes_secret_id(sm_arn):
-    instr = SecretsManagerTarget(sm_arn).connection_instructions(profile="reviewer")
-    assert "get-secret-value" in instr and sm_arn in instr

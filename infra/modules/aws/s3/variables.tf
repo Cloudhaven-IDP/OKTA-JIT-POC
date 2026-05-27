@@ -35,6 +35,12 @@ variable "generate_access_policies" {
   default     = true
 }
 
+variable "force_destroy" {
+  description = "Delete all objects + versions when the bucket is destroyed. Set true for buckets known to hold content (state buckets, JIT target buckets) to avoid manual purge before terraform destroy."
+  type        = bool
+  default     = false
+}
+
 variable "lifecycle_rules" {
   description = "Lifecycle rules. null = default (noncurrent versions → Glacier IR after 30d, delete after 365d). [] = disable lifecycle. Custom list overrides."
   type        = any

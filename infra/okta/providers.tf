@@ -1,9 +1,20 @@
 terraform {
+  required_version = ">= 1.6"
   backend "s3" {
     key            = "okta/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "jit-tfstate-lock"
     encrypt        = true
+  }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    okta = {
+      source  = "okta/okta"
+      version = "~> 4.0"
+    }
   }
 }
 

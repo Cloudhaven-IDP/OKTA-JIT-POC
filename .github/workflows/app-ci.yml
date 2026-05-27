@@ -82,7 +82,7 @@ jobs:
             --value "${{ steps.tag.outputs.tag }}" \
             --type String --overwrite
       - name: trigger infra-apply (aws-app/jit-frontend)
-        run: gh workflow run infra-apply.yml -f stack=aws-app/jit-frontend
+        run: gh workflow run infra-apply.yml -f jit_frontend=true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -108,7 +108,6 @@ jobs:
           docker buildx build --platform linux/arm64 --provenance=false --sbom=false -f app/lambdas/janitor/Dockerfile --push -t "$IMG" .
           echo "JANITOR_IMAGE=$IMG" >> "$GITHUB_ENV"
       - name: update Lambda function code
-        # Lambda module has lifecycle.ignore_changes = [image_uri]; update directly.
         run: aws lambda update-function-code --function-name jit-janitor --image-uri "$JANITOR_IMAGE"
       - name: bump SSM image_tag
         run: |

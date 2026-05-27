@@ -27,11 +27,6 @@ data "aws_iam_policy_document" "janitor_revoke" {
       "s3:DeleteBucketPolicy",
     ]
     resources = ["*"]
-    condition {
-      test     = "StringEquals"
-      variable = "aws:ResourceTag/JIT"
-      values   = ["true"]
-    }
   }
 
   statement {
