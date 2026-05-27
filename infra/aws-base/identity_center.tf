@@ -1,12 +1,14 @@
 locals {
   identity_path = "${path.module}/../identity.yaml"
   identity      = yamldecode(file(local.identity_path))
-  user_ids      = { for u in local.identity.users : u.email => aws_identitystore_user.this[u.email].user_id }
 
   members_by_group = {
     for group_name in distinct(flatten([for u in local.identity.users : u.groups])) :
     group_name => [
-      for u in local.identity.users : local.user_ids[u.email] if contains(u.groups, group_name)
+      for u in local.identity.users : {
+        email   = u.email
+        user_id = aws_identitystore_user.this[u.email].user_id
+      } if contains(u.groups, group_name)
     ]
   }
 }

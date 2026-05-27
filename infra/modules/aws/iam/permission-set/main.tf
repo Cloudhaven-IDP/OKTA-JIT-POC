@@ -55,9 +55,9 @@ resource "aws_ssoadmin_account_assignment" "group_assignment" {
 
 locals {
   group_memberships = merge([
-    for group_name, user_ids in var.members : {
-      for user_id in user_ids :
-      "${group_name}:${user_id}" => { group_name = group_name, user_id = user_id }
+    for group_name, members in var.members : {
+      for m in members :
+      "${group_name}:${m.email}" => { group_name = group_name, user_id = m.user_id }
     }
   ]...)
 }

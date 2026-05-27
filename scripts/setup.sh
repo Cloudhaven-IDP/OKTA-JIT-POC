@@ -45,6 +45,10 @@ terraform apply -auto-approve
 terraform output -json > "$ROOT/bootstrap-outputs.json"
 popd >/dev/null
 
+GREEN=$'\033[32m'
+NC=$'\033[0m'
+
+printf '%s' "$GREEN"
 echo ""
 echo "✓ Bootstrap complete."
 echo ""
@@ -64,3 +68,4 @@ echo ""
 echo "       https://github.com/$GITHUB_REPO/actions/workflows/app-ci.yml"
 echo ""
 echo "  4. The apply-jit-frontend step prints the Streamlit URL in its run summary."
+printf '%s' "$NC"
