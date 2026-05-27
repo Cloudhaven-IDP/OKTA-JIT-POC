@@ -4,3 +4,8 @@ users:
   last_name: fajobi
   groups:
   - jit-requesters
+- email: charles123@gmail.com
+  first_name: charles
+  last_name: ade
+  groups:
+  - jit-requesters
